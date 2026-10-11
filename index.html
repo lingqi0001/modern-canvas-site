@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modern Canvas, a fresher look for Canvas LMS</title>
+<meta name="description" content="Modern Canvas is a Chrome extension that gives Canvas LMS softer corners, a colour theme you control, a mail-style inbox, global search and a to-do panel that reads your whole term.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Modern Canvas">
+<meta property="og:description" content="A modern look for Canvas LMS, plus the tools that make studying easier.">
+<meta property="og:url" content="https://lingqi0001.github.io/modern-canvas-site/">
+<meta property="og:image" content="https://lingqi0001.github.io/modern-canvas-site/assets/img/design.webp">
+<meta name="theme-color" content="#fbfaf8">
+<link rel="icon" href="assets/img/favicon.png">
+<style>
+  :root {
+    --ink: #17161c;
+    --ink-2: #5f5c68;
+    --ink-3: #8d8a96;
+    --bg: #ffffff;
+    --bg-soft: #f7f6fb;
+    --line: #e9e7f1;
+    --accent: #3d5ad6;
+    --radius-lg: 20px;
+    --radius: 14px;
+    --shadow: 0 18px 40px rgba(23, 22, 28, .10), 0 2px 6px rgba(23, 22, 28, .05);
+    --ease: cubic-bezier(.16, 1, .3, 1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 { margin: 0; line-height: 1.15; letter-spacing: -.02em; font-weight: 700; }
+  h1 { font-size: clamp(2.3rem, 6vw, 3.6rem); }
+  h2 { font-size: clamp(1.5rem, 3.4vw, 2rem); }
+  p { margin: 0; }
+  a { color: inherit; }
+
+  .wrap { width: min(1120px, 100% - 48px); margin-inline: auto; }
+
+  /* header */
+  .site-head {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255, 255, 255, .88);
+    backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .site-head .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+  .mark { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; text-decoration: none; }
+  .mark i {
+    width: 22px; height: 22px; border-radius: 7px;
+    background: linear-gradient(140deg, var(--accent), #7f9bff);
+  }
+  .head-nav { margin-left: auto; display: flex; align-items: center; gap: 26px; }
+  .head-nav a { font-size: 15px; color: var(--ink-2); text-decoration: none; }
+  .head-nav a:hover { color: var(--ink); }
+
+  /* hero */
+  .hero { padding: 76px 0 26px; text-align: center; }
+  .eyebrow {
+    display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-2);
+    background: var(--bg-soft); border: 1px solid var(--line);
+    padding: 6px 12px; border-radius: 999px;
+  }
+  .hero h1 { margin: 18px auto 0; max-width: 17ch; }
+  .hero .lede { margin: 18px auto 0; max-width: 60ch; font-size: clamp(1.05rem, 2vw, 1.2rem); color: var(--ink-2); }
+  .hero .actions { margin-top: 26px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 20px; border-radius: 999px; border: 1px solid transparent;
+    font-size: 15px; font-weight: 400; text-decoration: none;
+    transition: background-color .18s var(--ease), color .18s var(--ease);
+  }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.primary:hover { background: #2f49b8; }
+  .btn.ghost { border-color: var(--line); color: var(--ink); background: #fff; }
+  .btn.ghost:hover { background: var(--bg-soft); }
+  .note { margin-top: 14px; font-size: 14px; color: var(--ink-3); }
+
+  /* carousel */
+  .deck { padding: 34px 0 8px; }
+  .frame {
+    position: relative; overflow: hidden;
+    border-radius: var(--radius-lg); border: 1px solid var(--line);
+    background: var(--bg-soft); box-shadow: var(--shadow);
+    outline: none;
+  }
+  .track { display: flex; transition: transform .5s var(--ease); }
+  .slide { flex: 0 0 100%; margin: 0; }
+  .slide img { display: block; width: 100%; height: auto; aspect-ratio: 1400 / 876; }
+  .deck-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 42px; height: 42px; display: grid; place-items: center;
+    border-radius: 999px; border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .92); color: var(--ink);
+    cursor: pointer; padding: 0;
+    transition: background-color .18s var(--ease);
+  }
+  .deck-btn:hover { background: #fff; }
+  .deck-btn.prev { left: 14px; }
+  .deck-btn.next { right: 14px; }
+  .deck-btn svg { width: 18px; height: 18px; display: block; }
+  .deck-ui { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 20px; flex-wrap: wrap; }
+  .dots { display: flex; gap: 9px; }
+  .dot {
+    width: 9px; height: 9px; padding: 0; border-radius: 999px; border: 0;
+    background: #d7d4e2; cursor: pointer;
+    transition: width .3s var(--ease), background-color .3s var(--ease);
+  }
+  .dot[aria-current="true"] { width: 26px; background: var(--ink); }
+  .caption { min-height: 1.6em; max-width: 62ch; font-size: 15.5px; color: var(--ink-2); }
+  .caption b { color: var(--ink); font-weight: 600; }
+
+  /* sections */
+  section.band { padding: 78px 0; }
+  section.band + section.band { border-top: 1px solid var(--line); }
+  .sec-head { text-align: center; max-width: 62ch; margin: 0 auto 40px; }
+  .sec-head h2 { margin-bottom: 12px; }
+  .sec-head p { color: var(--ink-2); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: #fff; padding: 24px 24px 26px;
+    transition: background-color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .card:hover { background: var(--bg-soft); }
+  .card h3 { font-size: 17.5px; margin-bottom: 8px; letter-spacing: -.01em; }
+  .card p { font-size: 15.5px; color: var(--ink-2); }
+  .card .glyph {
+    width: 34px; height: 34px; border-radius: 10px; margin-bottom: 16px;
+    display: grid; place-items: center; background: var(--bg-soft); border: 1px solid var(--line);
+  }
+  .card .glyph svg { width: 17px; height: 17px; stroke: var(--ink); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .soft { background: var(--bg-soft); }
+  section.band.soft { border-top: 1px solid var(--line); }
+
+  /* footer */
+  footer { padding: 46px 0 60px; border-top: 1px solid var(--line); }
+  footer .wrap { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 14.5px; color: var(--ink-3); }
+  footer .mark { font-size: 15px; color: var(--ink); }
+  footer .right { margin-left: auto; }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    body { font-size: 16px; }
+    .wrap { width: min(1120px, 100% - 32px); }
+    .hero { padding-top: 52px; }
+    .grid { grid-template-columns: 1fr; }
+    .head-nav a { display: none; }
+    .deck-btn { width: 36px; height: 36px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .track, .dot, .btn, .card { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="mark" href="#top"><i aria-hidden="true"></i>Modern Canvas</a>
+    <nav class="head-nav">
+      <a href="#features">What it does</a>
+      <a href="#principles">How it behaves</a>
+      <a href="#get">Get it</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero wrap">
+    <span class="eyebrow">Chrome extension for Canvas LMS</span>
+    <h1>A fresher look for Canvas</h1>
+    <p class="lede">Soft corners, colours you choose yourself, and a set of study tools that fit into the pages you already open every day.</p>
+    <div class="actions">
+      <a class="btn primary" href="#deck">See the five screens</a>
+      <a class="btn ghost" href="#features">What it does</a>
+    </div>
+  </section>
+
+  <section class="deck wrap" id="deck" aria-roledescription="carousel" aria-label="Screenshots of Modern Canvas">
+    <div class="frame" id="frame" tabindex="0" role="group" aria-label="Screenshot slideshow, use the arrow keys to change slide">
+      <div class="track" id="track">
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="1 of 5">
+          <img src="assets/img/design.webp" width="1400" height="876" alt="Canvas dropdowns and the course colour editor before and after Modern Canvas restyles them">
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="2 of 5">
+          <img src="assets/img/search.webp" width="1400" height="876" loading="lazy" alt="A single search box returning courses, work, announcements, pages and links">
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="3 of 5">
+          <img src="assets/img/inbox.webp" width="1400" height="876" loading="lazy" alt="A mail style inbox with tracked resources, summarised dates and a reply box">
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="4 of 5">
+          <img src="assets/img/themes.webp" width="1400" height="876" loading="lazy" alt="A theme detail card showing its colour slots and card images">
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="5 of 5">
+          <img src="assets/img/todo.webp" width="1400" height="876" loading="lazy" alt="A to do panel listing work due tomorrow and in the coming days">
+        </figure>
+      </div>
+      <button class="deck-btn prev" id="prev" type="button" aria-label="Previous screen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="deck-btn next" id="next" type="button" aria-label="Next screen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="deck-ui">
+      <div class="dots" id="dots" role="tablist" aria-label="Choose a screen"></div>
+      <p class="caption" id="caption"></p>
+    </div>
+  </section>
+
+  <section class="band soft" id="features">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>What changes on your Canvas</h2>
+        <p>Every part is a switch you can turn off. The pages underneath stay exactly where Canvas put them.</p>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 12h8"/></svg></span>
+          <h3>A softer, rounder interface</h3>
+          <p>Dashboard, calendar, grades, syllabus, groups, announcements and conversations all get redrawn with rounded corners and one consistent colour set.</p>
+        </article>
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg></span>
+          <h3>Search everything at once</h3>
+          <p>One box finds courses, work, announcements, pages, links and messages. It reads from an index built on your own machine, so typing sends no requests.</p>
+        </article>
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="4"/><path d="m4 7 8 6 8-6"/></svg></span>
+          <h3>An inbox that reads like mail</h3>
+          <p>Threads open in a two column view, links and files inside them are tracked by type, and a long message gets its dates pulled out into one line.</p>
+        </article>
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h9M4 12h16M4 17h12"/><path d="m17.5 5.5 1.6 1.6 3-3.1"/></svg></span>
+          <h3>One to do panel</h3>
+          <p>Assignments, announcements, feedback and finished work sit in the same list, grouped by when they are due, with your progress across the week on top.</p>
+        </article>
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2.2-1 2.2-2 0-1.6-1.6-1.6-1.6-3 0-1.1.9-2 2-2H17a4 4 0 0 0 4-4c0-3.9-4-7-9-7Z"/><circle cx="8" cy="10" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="10" r="1"/></svg></span>
+          <h3>Themes, including your own</h3>
+          <p>Browse thousands of community themes with their colours and card images shown up front, edit any of the twelve colour slots, or import a theme file.</p>
+        </article>
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="16" rx="2"/><path d="M13 7h8M13 12h8M13 17h8"/></svg></span>
+          <h3>A sidebar you can arrange</h3>
+          <p>Drag the navigation rows into the order you want, move them between the two areas, and hide the ones you never open.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="principles">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>How it behaves</h2>
+        <p>The rules the whole extension is built on.</p>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 12h8M8 8h8M8 16h5"/><rect x="3" y="3" width="18" height="18" rx="6"/></svg></span>
+          <h3>Text stays readable</h3>
+          <p>Every colour you pick is checked against the surfaces it lands on. When contrast drops too low, the text on that surface flips to black or white on its own.</p>
+        </article>
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></span>
+          <h3>It plays nice</h3>
+          <p>If BetterCampus is installed too, you choose which one paints the page. Layout fixes, panels and colours stay independent of each other either way.</p>
+        </article>
+        <article class="card">
+          <span class="glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="3"/><path d="M8 10V8a4 4 0 0 1 8 0v2"/></svg></span>
+          <h3>No servers of ours</h3>
+          <p>The optional AI summaries talk straight to the provider whose key you enter, and they ask you before sending anything large. We have no backend to send it to.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band soft" id="get">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Get Modern Canvas</h2>
+        <p>Works in Chrome and Edge on any Canvas site at instructure.com. No account, no sign in, nothing to configure before it starts helping.</p>
+        <p class="note" id="store-note">The Web Store listing is being finished right now. This page will carry the install button as soon as it is live.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="mark" href="#top"><i aria-hidden="true"></i>Modern Canvas</a>
+    <span>Not affiliated with Canvas or Instructure.</span>
+    <span class="right">Built by a student, for students who live in Canvas.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // 上架后把商店地址填进这一行，按钮会自动出现，那段提示文字会消失。
+  var STORE_URL = '';
+
+  var CAPTIONS = [
+    '<b>Modern design.</b> The controls Canvas ships with, redrawn to match the rest of your page.',
+    '<b>Search everything.</b> Courses, work, announcements, pages, links and messages in one box.',
+    '<b>Inbox upgraded.</b> Reminders, tracked resources, dates pulled out of long threads, instant replies.',
+    '<b>Customize your theme.</b> Twelve colour slots, card images, and a wall of community themes.',
+    '<b>Stay organized.</b> Announcements, feedback, completed work and your to do list in one panel.'
+  ];
+
+  var track = document.getElementById('track');
+  var frame = document.getElementById('frame');
+  var dotsBox = document.getElementById('dots');
+  var caption = document.getElementById('caption');
+  var slides = track.children.length;
+  var i = 0;
+  var timer = null;
+  var HOLD = 5200;
+
+  for (var d = 0; d < slides; d++) {
+    var dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'dot';
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Show screen ' + (d + 1));
+    dot.dataset.i = d;
+    dotsBox.appendChild(dot);
+  }
+  var dots = dotsBox.children;
+
+  function show(n) {
+    i = (n + slides) % slides;
+    track.style.transform = 'translate3d(' + (-i * 100) + '%,0,0)';
+    for (var k = 0; k < slides; k++) dots[k].setAttribute('aria-current', k === i ? 'true' : 'false');
+    caption.innerHTML = CAPTIONS[i];
+  }
+
+  function hold() {
+    if (timer) clearInterval(timer);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    timer = setInterval(function () {
+      if (document.hidden || frame.matches(':hover, :focus-within')) return;
+      show(i + 1);
+    }, HOLD);
+  }
+
+  document.getElementById('prev').addEventListener('click', function () { show(i - 1); hold(); });
+  document.getElementById('next').addEventListener('click', function () { show(i + 1); hold(); });
+  dotsBox.addEventListener('click', function (e) {
+    var b = e.target.closest('.dot');
+    if (b) { show(+b.dataset.i); hold(); }
+  });
+  frame.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') { show(i - 1); hold(); }
+    if (e.key === 'ArrowRight') { show(i + 1); hold(); }
+  });
+
+  var down = false, x0 = 0, moved = 0;
+  frame.addEventListener('pointerdown', function (e) {
+    down = true; x0 = e.clientX; moved = 0;
+  });
+  frame.addEventListener('pointermove', function (e) {
+    if (!down) return;
+    moved = e.clientX - x0;
+    if (Math.abs(moved) > 6) track.style.transition = 'none';
+    if (Math.abs(moved) > 40) {
+      show(moved < 0 ? i + 1 : i - 1);
+      down = false; moved = 0;
+      track.style.transition = '';
+      hold();
+    }
+  });
+  function release() { down = false; track.style.transition = ''; }
+  frame.addEventListener('pointerup', release);
+  frame.addEventListener('pointercancel', release);
+  frame.addEventListener('pointerleave', release);
+
+  if (STORE_URL) {
+    var note = document.getElementById('store-note');
+    var btn = document.createElement('a');
+    btn.className = 'btn primary';
+    btn.href = STORE_URL;
+    btn.textContent = 'Add to Chrome';
+    note.parentElement.insertBefore(btn, note);
+    note.remove();
+  }
+
+  show(0);
+  hold();
+})();
+</script>
+</body>
+</html>
